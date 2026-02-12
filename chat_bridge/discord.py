@@ -68,11 +68,16 @@ class Bot(Client):
 
         return ret
 
-    def relay_irc_message(self, who, what):
-        formatted_msg = "**<%s>** %s" % (who, self.format_irc_message(what))
+    def relay_irc_message(self, who, what, action):
+        if not action:
+            message_format = "**<%s>** %s"
+        else:
+            message_format = "＊ **%s** %s"
+
+        text = message_format % (who, self.format_irc_message(what))
 
         channel = self.get_channel(self.cfg.channel)
-        f = asyncio.run_coroutine_threadsafe(channel.send(formatted_msg), self.loop)
+        f = asyncio.run_coroutine_threadsafe(channel.send(text), self.loop)
         f.result()
 
 
@@ -92,7 +97,7 @@ class EventTarget(events.EventTarget):
         while True:
             evt = self.queue.get()
             if evt.type == events.IRCMessage.TYPE:
-                self.bot.relay_irc_message(evt.who, evt.what)
+                self.bot.relay_irc_message(evt.who, evt.what, evt.action)
             else:
                 logging.error("Got unknown event for discord: %r" % evt.type)
 
