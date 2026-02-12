@@ -9,6 +9,7 @@ from discord import MessageReferenceType
 from pypeul import IRC, Tags
 
 import logging
+import re
 import queue
 
 
@@ -34,6 +35,48 @@ class Bot(IRC):
         # Insert a zero-width space to prevent accidental pings on IRC.
         return name[0] + "\ufeff" + name[1:]
 
+    def sanitize_irc_names(self, text, nicks):
+        """Sanitizes all occurrences of IRC nicks to prevent accidental pings.
+
+        The algorithm used to detect nicks is based on Textual's "full word matches":
+        https://github.com/Codeux-Software/Textual/blob/243a6e2c06ad92a2ad590e071d902ec3c9b389d8/Sources/App/Classes/Views/Channel%20View/TVCLogRenderer.m#L378
+        """
+
+        # Sort by length to ensure "OatmealDome" is matched before "Oatmeal", for example
+        sorted_nicks = sorted([n for n in nicks if n], key=len, reverse=True)
+
+        if not sorted_nicks:
+            return text
+
+        # Compile a regex with two capturing groups: "[nick]" and "nick"
+        nicks_pattern = "|".join(map(re.escape, sorted_nicks))
+        full_pattern = re.compile(
+            f"\\[({nicks_pattern})\\]|({nicks_pattern})", re.IGNORECASE
+        )
+
+        def replacement_callback(match):
+            # If the match is in group 1, return the nick without [] to passthrough the ping.
+            if match.group(1):
+                return match.group(1)
+
+            found_str = match.group(2)
+            start, end = match.span(2)
+
+            # If match starts with alphanumeric char, prev char must not be alphanumeric
+            if found_str[0].isalnum():
+                if start > 0 and text[start - 1].isalnum():
+                    return found_str
+
+            # If match ends with alphanumeric char, next char must not be alphanumeric
+            if found_str[-1].isalnum():
+                if end < len(text) and text[end].isalnum():
+                    return found_str
+
+            # Match found, replace
+            return self.sanitize_name(found_str)
+
+        return full_pattern.sub(replacement_callback, text)
+
     def relay_discord_message(self, msg):
         content = []
 
@@ -56,6 +99,9 @@ class Bot(IRC):
 
         if msg.content:
             text = msg.content
+
+            irc_nicks = (u.nick for u in self.users_in(self.cfg.channel))
+            text = self.sanitize_irc_names(text, irc_nicks)
 
             for user in msg.mentions:
                 text = text.replace(
