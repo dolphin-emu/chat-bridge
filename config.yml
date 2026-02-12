@@ -1,0 +1,10 @@
+irc:
+    server: irc.libera.chat
+    port: 6667
+    ssl: false
+    nick: irrawaddy-test
+    channel: "#dolphin-test"
+
+discord:
+    token: "token"
+    channel: 1234

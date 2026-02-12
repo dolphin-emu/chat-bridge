@@ -1,0 +1,9 @@
+*.pyc
+__pycache__
+
+# Nix build output
+result
+
+# Configuration files
+config-debug.yml
+config-prod.yml
