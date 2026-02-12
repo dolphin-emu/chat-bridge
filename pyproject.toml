@@ -12,7 +12,7 @@ chat-bridge = "chat_bridge.__main__:main"
 [tool.poetry.dependencies]
 python = "^3.10"
 pyyaml = "^6.0"
-pypeul = "^0.3.1"
+pypeul = { git = "https://github.com/dolphin-emu/pypeul", rev = "7a5310670bbc5405c9e6a2e4889c65231e137443" }
 discord-py = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
