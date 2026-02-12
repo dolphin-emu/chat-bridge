@@ -28,6 +28,9 @@ class Bot(Client):
         if message.type != MessageType.default and message.type != MessageType.reply:
             return
 
+        if message.author.id in self.cfg.ignore_users:
+            return
+
         evt = events.DiscordMessage(message)
         events.dispatcher.dispatch("discord", evt)
 

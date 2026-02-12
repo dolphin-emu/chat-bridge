@@ -10,3 +10,5 @@ irc:
 discord:
     token: "token"
     channel: 1234
+    ignore_users:
+        - 1234
