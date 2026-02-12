@@ -212,16 +212,16 @@ def start():
     port = cfg.irc.port
     ssl = cfg.irc.ssl
     nick = cfg.irc.nick
-    channels = cfg.irc.channels
+    channel = cfg.irc.channel
 
     logging.info(
-        "Starting IRC client: server=%r port=%d ssl=%s nick=%r sasl=%s channels=%r",
+        "Starting IRC client: server=%r port=%d ssl=%s nick=%r sasl=%s channel=%r",
         server,
         port,
         ssl,
         nick,
         cfg.irc.sasl_username is not None and cfg.irc.sasl_password is not None,
-        channels,
+        channel,
     )
 
     bot = Bot(cfg.irc)
