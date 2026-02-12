@@ -127,6 +127,24 @@ class Bot(IRC):
         )
         self.message(self.cfg.channel, irc_message)
 
+        if msg.poll:
+            self.message(
+                self.cfg.channel,
+                "Poll - user started a poll, unable to render or vote on IRC",
+            )
+
+        for embed in msg.embeds:
+            if embed.type == "rich":
+                self.message(
+                    self.cfg.channel,
+                    "Embedded content - rich embed, unable to render on IRC",
+                )
+            elif embed.type == "poll_result":
+                self.message(
+                    self.cfg.channel,
+                    "Embedded content - poll result, unable to render on IRC",
+                )
+
         for attachment in msg.attachments:
             self.message(self.cfg.channel, "Attachment - %s" % attachment.url)
 
