@@ -34,6 +34,13 @@ class Bot(Client):
         evt = events.DiscordMessage(message)
         events.dispatcher.dispatch("discord", evt)
 
+    async def on_reaction_add(self, reaction, user):
+        if reaction.message.channel.id != self.cfg.channel:
+            return
+
+        evt = events.DiscordReactionAdd(reaction, user)
+        events.dispatcher.dispatch("discord", evt)
+
     def format_irc_message(self, msg):
         """
         Turns an IRC message into formatted text for Discord.
@@ -114,6 +121,7 @@ def start():
     intents.guilds = True
     intents.guild_messages = True
     intents.message_content = True
+    intents.reactions = True
 
     bot = Bot(cfg.discord, intents)
     utils.DaemonThread(target=bot.run, kwargs={"token": cfg.discord.token}).start()

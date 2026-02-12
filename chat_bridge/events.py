@@ -82,3 +82,8 @@ def IRCMessage(who: str, what: str, action: bool = False):
 @event("discord_message")
 def DiscordMessage(msg: discord.Message):
     return {"msg": msg}
+
+
+@event("discord_reaction_add")
+def DiscordReactionAdd(reaction: discord.Reaction, user: discord.User):
+    return {"reaction": reaction, "user": user}
