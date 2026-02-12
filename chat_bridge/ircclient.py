@@ -127,9 +127,8 @@ class Bot(IRC):
         )
         self.message(self.cfg.channel, irc_message)
 
-        if msg.attachments:
-            for attachment in msg.attachments:
-                self.message(self.cfg.channel, "Attachment: %s" % attachment.url)
+        for attachment in msg.attachments:
+            self.message(self.cfg.channel, "Attachment - %s" % attachment.url)
 
     def on_channel_message(self, who, channel, msg):
         if who.nick in self.cfg.ignore_users:
