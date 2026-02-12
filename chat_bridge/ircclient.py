@@ -81,6 +81,10 @@ class Bot(IRC):
         )
         self.message(self.cfg.channel, irc_message)
 
+        if msg.attachments:
+            for attachment in msg.attachments:
+                self.message(self.cfg.channel, "Attachment: %s" % attachment.url)
+
     def on_channel_message(self, who, channel, msg):
         evt = events.IRCMessage(str(who), msg)
         events.dispatcher.dispatch("ircclient", evt)
