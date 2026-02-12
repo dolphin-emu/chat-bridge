@@ -28,6 +28,18 @@ class Bot(IRC):
     def on_ready(self):
         self.join(self.cfg.channel)
 
+    def relay_discord_message(self, msg):
+        name = msg.author.display_name
+        # Insert a zero-width space to prevent accidental pings on IRC.
+        name = name[0] + "\ufeff" + name[1:]
+
+        irc_message = "%s%s %s" % (
+            Tags.Bold(name),
+            Tags.Bold(":"),
+            msg.content,
+        )
+        self.message(self.cfg.channel, irc_message)
+
     def on_channel_message(self, who, channel, msg):
         evt = events.IRCMessage(str(who), msg)
         events.dispatcher.dispatch("ircclient", evt)
@@ -42,13 +54,16 @@ class EventTarget(events.EventTarget):
         self.queue.put(evt)
 
     def accept_event(self, evt):
-        accepted_types = []
+        accepted_types = [events.DiscordMessage.TYPE]
         return evt.type in accepted_types
 
     def run(self):
         while True:
             evt = self.queue.get()
-            logging.error("Got unknown event for irc: %r" % evt.type)
+            if evt.type == events.DiscordMessage.TYPE:
+                self.bot.relay_discord_message(evt.msg)
+            else:
+                logging.error("Got unknown event for irc: %r" % evt.type)
 
 
 def start():
