@@ -1,5 +1,4 @@
-"""IRC client module that sends events to an IRC channel with nice,
-human-readable formatting. Also receives events from registered users."""
+"""IRC client module for relaying messages between Discord and IRC."""
 
 from . import events, utils
 from .config import cfg
