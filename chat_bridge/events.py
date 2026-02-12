@@ -3,6 +3,7 @@ event dispatcher."""
 
 from . import utils
 
+import discord
 import functools
 import logging
 
@@ -76,3 +77,8 @@ def ConfigReload():
 @event("irc_message")
 def IRCMessage(who: str, what: str):
     return {"who": who, "what": what}
+
+
+@event("discord_message")
+def DiscordMessage(msg: discord.Message):
+    return {"msg": msg}

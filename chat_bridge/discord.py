@@ -5,7 +5,7 @@ from .config import cfg
 
 from pypeul import Tags
 
-from discord import Client, Intents
+from discord import Client, Intents, TextChannel, MessageType
 
 import asyncio
 import logging
@@ -16,6 +16,20 @@ class Bot(Client):
     def __init__(self, cfg, intents):
         super(Bot, self).__init__(intents=intents)
         self.cfg = cfg
+
+    async def on_message(self, message):
+        if message.author == self.user:
+            return
+
+        channel = message.channel
+        if channel.id != self.cfg.channel:
+            return
+
+        if message.type != MessageType.default:
+            return
+
+        evt = events.DiscordMessage(message)
+        events.dispatcher.dispatch("discord", evt)
 
     def format_irc_message(self, msg):
         """
