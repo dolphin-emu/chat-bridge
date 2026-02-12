@@ -85,12 +85,12 @@ class Bot(IRC):
                 if msg.reference.type == MessageReferenceType.reply:
                     content.append(
                         "(in reply to %s)"
-                        % self.sanitize_name(msg.reference.resolved.author.display_name)
+                        % self.sanitize_name(msg.reference.resolved.author.name)
                     )
                 elif msg.reference.type == MessageReferenceType.forward:
                     content.append(
                         "(forwarded message from %s)"
-                        % self.sanitize_name(msg.reference.resolved.author.display_name)
+                        % self.sanitize_name(msg.reference.resolved.author.name)
                     )
             else:
                 content.append(
@@ -105,7 +105,7 @@ class Bot(IRC):
 
             for user in msg.mentions:
                 text = text.replace(
-                    "<@%s>" % user.id, "@%s" % self.sanitize_name(user.display_name)
+                    "<@%s>" % user.id, "@%s" % self.sanitize_name(user.name)
                 )
 
             for role in msg.role_mentions:
@@ -121,7 +121,7 @@ class Bot(IRC):
             content.append(text)
 
         irc_message = "%s%s %s" % (
-            Tags.Bold(self.sanitize_name(msg.author.display_name)),
+            Tags.Bold(self.sanitize_name(msg.author.name)),
             Tags.Bold(":"),
             " ".join(content),
         )
