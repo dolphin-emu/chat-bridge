@@ -130,6 +130,9 @@ class Bot(IRC):
         for attachment in msg.attachments:
             self.message(self.cfg.channel, "Attachment - %s" % attachment.url)
 
+        for sticker in msg.stickers:
+            self.message(self.cfg.channel, 'Sticker - "%s"' % sticker.name)
+
     def on_channel_message(self, who, channel, msg):
         if who.nick in self.cfg.ignore_users:
             return
