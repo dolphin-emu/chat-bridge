@@ -132,6 +132,9 @@ class Bot(IRC):
                 self.message(self.cfg.channel, "Attachment: %s" % attachment.url)
 
     def on_channel_message(self, who, channel, msg):
+        if who.nick in self.cfg.ignore_users:
+            return
+
         evt = events.IRCMessage(str(who), msg)
         events.dispatcher.dispatch("ircclient", evt)
 

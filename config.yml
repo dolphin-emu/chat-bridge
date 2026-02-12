@@ -2,8 +2,10 @@ irc:
     server: irc.libera.chat
     port: 6667
     ssl: false
-    nick: irrawaddy-test
+    nick: clymene-test
     channel: "#dolphin-test"
+    ignore_users:
+        - "irrawaddy-test"
 
 discord:
     token: "token"
