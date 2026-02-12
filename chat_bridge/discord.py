@@ -1,4 +1,4 @@
-"""Discord client module that sends notifications to a Discord channel."""
+"""Discord client module for relaying messages between Discord and IRC."""
 
 from . import events, utils
 from .config import cfg
