@@ -71,3 +71,8 @@ def InternalLog(level: str, pathname: str, lineno: int, msg: str, args: str):
 @event("config_reload")
 def ConfigReload():
     return {}
+
+
+@event("irc_message")
+def IRCMessage(who: str, what: str):
+    return {"who": who, "what": what}

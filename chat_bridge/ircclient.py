@@ -28,6 +28,10 @@ class Bot(IRC):
     def on_ready(self):
         self.join(self.cfg.channel)
 
+    def on_channel_message(self, who, channel, msg):
+        evt = events.IRCMessage(str(who), msg)
+        events.dispatcher.dispatch("ircclient", evt)
+
 
 class EventTarget(events.EventTarget):
     def __init__(self, bot):
