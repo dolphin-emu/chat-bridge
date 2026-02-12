@@ -10,7 +10,7 @@ from discord import Client, Intents, TextChannel, MessageType
 import asyncio
 import logging
 import queue
-
+import re
 
 class Bot(Client):
     def __init__(self, cfg, intents):
@@ -84,6 +84,20 @@ class Bot(Client):
         text = message_format % (who, self.format_irc_message(what))
 
         channel = self.get_channel(self.cfg.channel)
+
+        def replacement_callback(match):
+            username = match.group(1)
+
+            user = channel.guild.get_member_named(username)
+
+            if not user:
+                return username
+
+            return "<@%s>" % user.id
+
+        # Find all usernames in [] and add mentions wherever possible
+        text = re.sub(r"\[(.*?)\]", replacement_callback, text)
+
         f = asyncio.run_coroutine_threadsafe(channel.send(text), self.loop)
         f.result()
 
@@ -122,6 +136,7 @@ def start():
     intents.guild_messages = True
     intents.message_content = True
     intents.reactions = True
+    intents.members = True
 
     bot = Bot(cfg.discord, intents)
     utils.DaemonThread(target=bot.run, kwargs={"token": cfg.discord.token}).start()
