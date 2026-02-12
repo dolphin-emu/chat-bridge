@@ -4,6 +4,8 @@ human-readable formatting. Also receives events from registered users."""
 from . import events, utils
 from .config import cfg
 
+from discord import MessageReferenceType
+
 from pypeul import IRC, Tags
 
 import logging
@@ -28,15 +30,37 @@ class Bot(IRC):
     def on_ready(self):
         self.join(self.cfg.channel)
 
-    def relay_discord_message(self, msg):
-        name = msg.author.display_name
+    def sanitize_name(self, name):
         # Insert a zero-width space to prevent accidental pings on IRC.
-        name = name[0] + "\ufeff" + name[1:]
+        return name[0] + "\ufeff" + name[1:]
+
+    def relay_discord_message(self, msg):
+        content = []
+
+        if msg.reference is not None:
+            if msg.reference.resolved is not None:
+                if msg.reference.type == MessageReferenceType.reply:
+                    content.append(
+                        "(in reply to %s)"
+                        % self.sanitize_name(msg.reference.resolved.author.display_name)
+                    )
+                elif msg.reference.type == MessageReferenceType.forward:
+                    content.append(
+                        "(forwarded message from %s)"
+                        % self.sanitize_name(msg.reference.resolved.author.display_name)
+                    )
+            else:
+                content.append(
+                    "(message contains a reference, but the Discord API did not resolve it)"
+                )
+
+        if msg.content:
+            content.append(msg.content)
 
         irc_message = "%s%s %s" % (
-            Tags.Bold(name),
+            Tags.Bold(self.sanitize_name(msg.author.display_name)),
             Tags.Bold(":"),
-            msg.content,
+            " ".join(content),
         )
         self.message(self.cfg.channel, irc_message)
 

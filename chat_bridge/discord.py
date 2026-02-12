@@ -25,7 +25,7 @@ class Bot(Client):
         if channel.id != self.cfg.channel:
             return
 
-        if message.type != MessageType.default:
+        if message.type != MessageType.default and message.type != MessageType.reply:
             return
 
         evt = events.DiscordMessage(message)
