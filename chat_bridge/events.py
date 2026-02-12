@@ -75,8 +75,8 @@ def ConfigReload():
 
 
 @event("irc_message")
-def IRCMessage(who: str, what: str):
-    return {"who": who, "what": what}
+def IRCMessage(who: str, what: str, action: bool = False):
+    return {"who": who, "what": what, "action": action}
 
 
 @event("discord_message")

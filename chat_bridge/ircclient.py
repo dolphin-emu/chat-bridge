@@ -158,6 +158,13 @@ class Bot(IRC):
         evt = events.IRCMessage(str(who), msg)
         events.dispatcher.dispatch("ircclient", evt)
 
+    def on_action(self, who, target, msg):
+        if who.nick in self.cfg.ignore_users:
+            return
+
+        evt = events.IRCMessage(str(who), msg, action=True)
+        events.dispatcher.dispatch("ircclient", evt)
+
 
 class EventTarget(events.EventTarget):
     def __init__(self, bot):
