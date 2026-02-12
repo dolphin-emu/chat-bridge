@@ -55,7 +55,24 @@ class Bot(IRC):
                 )
 
         if msg.content:
-            content.append(msg.content)
+            text = msg.content
+
+            for user in msg.mentions:
+                text = text.replace(
+                    "<@%s>" % user.id, "@%s" % self.sanitize_name(user.display_name)
+                )
+
+            for role in msg.role_mentions:
+                text = text.replace(
+                    "<@&%s>" % role.id, "@%s" % self.sanitize_name(role.name)
+                )
+
+            for channel in msg.channel_mentions:
+                text = text.replace(
+                    "<#%s>" % channel.id, "#%s" % self.sanitize_name(channel.name)
+                )
+
+            content.append(text)
 
         irc_message = "%s%s %s" % (
             Tags.Bold(self.sanitize_name(msg.author.display_name)),
