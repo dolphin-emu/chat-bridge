@@ -97,8 +97,11 @@ class Bot(IRC):
 
         return "???"
 
-    def relay_discord_message(self, msg, bot_user):
+    def relay_discord_message(self, msg, bot_user, edited=False):
         content = []
+
+        if edited:
+            content.append("(edited previous message)")
 
         if msg.reference is not None:
             if msg.reference.resolved is not None:
@@ -214,7 +217,11 @@ class EventTarget(events.EventTarget):
         self.queue.put(evt)
 
     def accept_event(self, evt):
-        accepted_types = [events.DiscordMessage.TYPE, events.DiscordReactionAdd.TYPE]
+        accepted_types = [
+            events.DiscordMessage.TYPE,
+            events.DiscordMessageEdit.TYPE,
+            events.DiscordReactionAdd.TYPE,
+        ]
         return evt.type in accepted_types
 
     def run(self):
@@ -222,6 +229,8 @@ class EventTarget(events.EventTarget):
             evt = self.queue.get()
             if evt.type == events.DiscordMessage.TYPE:
                 self.bot.relay_discord_message(evt.msg, evt.bot_user)
+            elif evt.type == events.DiscordMessageEdit.TYPE:
+                self.bot.relay_discord_message(evt.msg, evt.bot_user, edited=True)
             elif evt.type == events.DiscordReactionAdd.TYPE:
                 self.bot.relay_discord_reaction_add(
                     evt.reaction, evt.user, evt.bot_user
