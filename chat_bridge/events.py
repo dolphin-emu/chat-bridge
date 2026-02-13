@@ -80,10 +80,12 @@ def IRCMessage(who: str, what: str, action: bool = False):
 
 
 @event("discord_message")
-def DiscordMessage(msg: discord.Message):
-    return {"msg": msg}
+def DiscordMessage(msg: discord.Message, bot_user: discord.User):
+    return {"msg": msg, "bot_user": bot_user}
 
 
 @event("discord_reaction_add")
-def DiscordReactionAdd(reaction: discord.Reaction, user: discord.User):
-    return {"reaction": reaction, "user": user}
+def DiscordReactionAdd(
+    reaction: discord.Reaction, user: discord.User, bot_user: discord.User
+):
+    return {"reaction": reaction, "user": user, "bot_user": bot_user}

@@ -12,6 +12,7 @@ import logging
 import queue
 import re
 
+
 class Bot(Client):
     def __init__(self, cfg, intents):
         super(Bot, self).__init__(intents=intents)
@@ -31,14 +32,14 @@ class Bot(Client):
         if message.author.id in self.cfg.ignore_users:
             return
 
-        evt = events.DiscordMessage(message)
+        evt = events.DiscordMessage(message, self.user)
         events.dispatcher.dispatch("discord", evt)
 
     async def on_reaction_add(self, reaction, user):
         if reaction.message.channel.id != self.cfg.channel:
             return
 
-        evt = events.DiscordReactionAdd(reaction, user)
+        evt = events.DiscordReactionAdd(reaction, user, self.user)
         events.dispatcher.dispatch("discord", evt)
 
     def format_irc_message(self, msg):

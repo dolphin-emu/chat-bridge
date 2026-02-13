@@ -76,7 +76,7 @@ class Bot(IRC):
 
         return full_pattern.sub(replacement_callback, text)
 
-    def relay_discord_message(self, msg):
+    def relay_discord_message(self, msg, bot_user):
         content = []
 
         if msg.reference is not None:
@@ -150,7 +150,7 @@ class Bot(IRC):
         for sticker in msg.stickers:
             self.message(self.cfg.channel, 'Sticker - "%s"' % sticker.name)
 
-    def relay_discord_reaction_add(self, reaction, user):
+    def relay_discord_reaction_add(self, reaction, user, bot_user):
         if isinstance(reaction.emoji, str):
             emoji = reaction.emoji
         else:
@@ -194,9 +194,11 @@ class EventTarget(events.EventTarget):
         while True:
             evt = self.queue.get()
             if evt.type == events.DiscordMessage.TYPE:
-                self.bot.relay_discord_message(evt.msg)
+                self.bot.relay_discord_message(evt.msg, evt.bot_user)
             elif evt.type == events.DiscordReactionAdd.TYPE:
-                self.bot.relay_discord_reaction_add(evt.reaction, evt.user)
+                self.bot.relay_discord_reaction_add(
+                    evt.reaction, evt.user, evt.bot_user
+                )
             else:
                 logging.error("Got unknown event for irc: %r" % evt.type)
 
