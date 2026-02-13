@@ -35,6 +35,13 @@ class Bot(Client):
         evt = events.DiscordMessage(message, self.user)
         events.dispatcher.dispatch("discord", evt)
 
+    async def on_raw_message_edit(self, payload):
+        if payload.message.channel.id != self.cfg.channel:
+            return
+
+        evt = events.DiscordMessageEdit(payload.message, self.user)
+        events.dispatcher.dispatch("discord", evt)
+
     async def on_reaction_add(self, reaction, user):
         if reaction.message.channel.id != self.cfg.channel:
             return

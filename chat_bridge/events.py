@@ -84,6 +84,11 @@ def DiscordMessage(msg: discord.Message, bot_user: discord.User):
     return {"msg": msg, "bot_user": bot_user}
 
 
+@event("discord_message_edit")
+def DiscordMessageEdit(msg: discord.Message, bot_user: discord.User):
+    return {"msg": msg, "bot_user": bot_user}
+
+
 @event("discord_reaction_add")
 def DiscordReactionAdd(
     reaction: discord.Reaction, user: discord.User, bot_user: discord.User
