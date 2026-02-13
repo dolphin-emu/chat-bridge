@@ -98,31 +98,36 @@ class Bot(IRC):
         return "???"
 
     def relay_discord_message(self, msg, bot_user, edited=False):
-        content = []
+        preamble_items = []
 
         if edited:
-            content.append("(edited previous message)")
+            preamble_items.append("edited previous message")
 
         if msg.reference is not None:
             if msg.reference.resolved is not None:
                 if msg.reference.type == MessageReferenceType.reply:
-                    content.append(
-                        "(in reply to %s)"
+                    preamble_items.append(
+                        "in reply to %s"
                         % self.extract_sender_from_discord_message(
                             msg.reference.resolved, bot_user, msg
                         )
                     )
                 elif msg.reference.type == MessageReferenceType.forward:
-                    content.append(
-                        "(forwarded message from %s)"
+                    preamble_items.append(
+                        "forwarded message from %s"
                         % self.extract_sender_from_discord_message(
                             msg.reference.resolved, bot_user
                         )
                     )
             else:
-                content.append(
-                    "(message contains a reference, but the Discord API did not resolve it)"
+                preamble_items.append(
+                    "unresolved reference"
                 )
+
+        if len(preamble_items) > 0:
+            preamble = "(" + ", ".join(preamble_items) + ") "
+        else:
+            preamble = ""
 
         if msg.content:
             text = msg.content
@@ -144,13 +149,14 @@ class Bot(IRC):
                 text = text.replace(
                     "<#%s>" % channel.id, "#%s" % self.sanitize_name(channel.name)
                 )
+        else:
+            text = ""
 
-            content.append(text)
-
-        irc_message = "%s%s %s" % (
+        irc_message = "%s%s %s%s" % (
             Tags.Bold(self.sanitize_name(msg.author.name)),
             Tags.Bold(":"),
-            " ".join(content),
+            preamble,
+            text,
         )
         self.message(self.cfg.channel, irc_message)
 
