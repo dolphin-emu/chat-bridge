@@ -99,7 +99,9 @@ class Bot(Client):
         # Find all usernames in [] and add mentions wherever possible
         text = re.sub(r"\[(.*?)\]", replacement_callback, text)
 
-        f = asyncio.run_coroutine_threadsafe(channel.send(text), self.loop)
+        f = asyncio.run_coroutine_threadsafe(
+            channel.send(text, suppress_embeds=True), self.loop
+        )
         f.result()
 
 
