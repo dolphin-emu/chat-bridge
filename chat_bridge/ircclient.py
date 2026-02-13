@@ -76,6 +76,27 @@ class Bot(IRC):
 
         return full_pattern.sub(replacement_callback, text)
 
+    def extract_sender_from_discord_message(
+        self, message, bot_user, parent_message=None
+    ):
+        # If this message was not sent by ourselves, just return the sender's name.
+        if message.author.id != bot_user.id:
+            return self.sanitize_name(message.author.name)
+
+        # Extract the original sender on IRC from the message content.
+        match = re.match(r"^\*\*<(.*)>\*\* ", message.content)
+        if match:
+            nick = match.group(1)
+
+            # Check if the parent message mentions the bot. If so, ping the user on IRC.
+            if parent_message and bot_user.mentioned_in(parent_message):
+                return nick
+
+            # Otherwise, return the nick sanitized to avoid a ping.
+            return self.sanitize_name(nick)
+
+        return "???"
+
     def relay_discord_message(self, msg, bot_user):
         content = []
 
@@ -84,12 +105,16 @@ class Bot(IRC):
                 if msg.reference.type == MessageReferenceType.reply:
                     content.append(
                         "(in reply to %s)"
-                        % self.sanitize_name(msg.reference.resolved.author.name)
+                        % self.extract_sender_from_discord_message(
+                            msg.reference.resolved, bot_user, msg
+                        )
                     )
                 elif msg.reference.type == MessageReferenceType.forward:
                     content.append(
                         "(forwarded message from %s)"
-                        % self.sanitize_name(msg.reference.resolved.author.name)
+                        % self.extract_sender_from_discord_message(
+                            msg.reference.resolved, bot_user
+                        )
                     )
             else:
                 content.append(
@@ -159,7 +184,9 @@ class Bot(IRC):
         text = "%s reacted with %s to a message by %s" % (
             Tags.Bold(self.sanitize_name(user.name)),
             emoji,
-            Tags.Bold(self.sanitize_name(reaction.message.author.name)),
+            Tags.Bold(
+                self.extract_sender_from_discord_message(reaction.message, bot_user)
+            ),
         )
         self.message(self.cfg.channel, text)
 
