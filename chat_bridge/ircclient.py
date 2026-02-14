@@ -188,18 +188,16 @@ class Bot(IRC):
         for sticker in msg.stickers:
             self.message(self.cfg.channel, 'Sticker - "%s"' % sticker.name)
 
-    def relay_discord_reaction_add(self, reaction, user, bot_user):
-        if isinstance(reaction.emoji, str):
-            emoji = reaction.emoji
+    def relay_discord_reaction_add(self, message, emoji, user, bot_user):
+        if emoji.is_custom_emoji():
+            emoji_text = "custom emoji %s" % emoji.name
         else:
-            emoji = "custom emoji %s" % reaction.emoji.name
+            emoji_text = emoji.name
 
         text = "%s reacted with %s to a message by %s" % (
             Tags.Bold(self.sanitize_name(user.name)),
-            emoji,
-            Tags.Bold(
-                self.extract_sender_from_discord_message(reaction.message, bot_user)
-            ),
+            emoji_text,
+            Tags.Bold(self.extract_sender_from_discord_message(message, bot_user)),
         )
         self.message(self.cfg.channel, text)
 
@@ -243,7 +241,7 @@ class EventTarget(events.EventTarget):
                 self.bot.relay_discord_message(evt.msg, evt.bot_user, edited=True)
             elif evt.type == events.DiscordReactionAdd.TYPE:
                 self.bot.relay_discord_reaction_add(
-                    evt.reaction, evt.user, evt.bot_user
+                    evt.message, evt.emoji, evt.user, evt.bot_user
                 )
             else:
                 logging.error("Got unknown event for irc: %r" % evt.type)

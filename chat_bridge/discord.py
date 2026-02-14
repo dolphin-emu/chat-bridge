@@ -5,7 +5,7 @@ from .config import cfg
 
 from pypeul import Tags
 
-from discord import Client, Intents, TextChannel, MessageType
+from discord import Client, Intents, TextChannel, MessageType, NotFound
 
 import asyncio
 import logging
@@ -42,11 +42,36 @@ class Bot(Client):
         evt = events.DiscordMessageEdit(payload.message, self.user)
         events.dispatcher.dispatch("discord", evt)
 
-    async def on_reaction_add(self, reaction, user):
-        if reaction.message.channel.id != self.cfg.channel:
+    async def on_raw_reaction_add(self, payload):
+        if payload.channel_id != self.cfg.channel:
             return
 
-        evt = events.DiscordReactionAdd(reaction, user, self.user)
+        channel = self.get_channel(payload.channel_id)
+        if not channel:
+            logging.error(
+                "Channel %s not found in on_raw_reaction_add", payload.channel_id
+            )
+            return
+
+        try:
+            message = await channel.fetch_message(payload.message_id)
+        except NotFound:
+            logging.error(
+                "Message %s not found in on_raw_reaction_add", payload.message_id
+            )
+            return
+
+        user = payload.member
+        if not user:
+            try:
+                user = await self.fetch_user(payload.user_id)
+            except NotFound:
+                logging.error(
+                    "User %s not found in on_raw_reaction_add", payload.user_id
+                )
+                return
+
+        evt = events.DiscordReactionAdd(message, payload.emoji, user, self.user)
         events.dispatcher.dispatch("discord", evt)
 
     def format_irc_message(self, msg):

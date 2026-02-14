@@ -91,6 +91,9 @@ def DiscordMessageEdit(msg: discord.Message, bot_user: discord.User):
 
 @event("discord_reaction_add")
 def DiscordReactionAdd(
-    reaction: discord.Reaction, user: discord.User, bot_user: discord.User
+    message: discord.Message,
+    emoji: discord.PartialEmoji,
+    user: discord.User,
+    bot_user: discord.User,
 ):
-    return {"reaction": reaction, "user": user, "bot_user": bot_user}
+    return {"message": message, "emoji": emoji, "user": user, "bot_user": bot_user}
