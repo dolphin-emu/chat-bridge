@@ -36,7 +36,7 @@ class EventLoggingHandler(logging.Handler):
         events.dispatcher.dispatch("logging", evt)
 
 
-def setup_logging(program, verbose=False, local=True, file=False):
+def setup_logging(program, verbose=False, local=True, file=False, syslog=True):
     """Sets up the default Python logger.
 
     Always log to syslog, optionaly log to stdout.
@@ -46,9 +46,10 @@ def setup_logging(program, verbose=False, local=True, file=False):
       verbose: If true, log more messages (DEBUG instead of INFO).
       local: If true, log to stdout as well as syslog.
       file: If true, log to a file.
+      syslog: If true, log to syslog.
     """
     loggers = []
-    if platform.system() == "Linux":
+    if syslog and platform.system() == "Linux":
         loggers.append(logging.handlers.SysLogHandler("/dev/log"))
     loggers.append(EventLoggingHandler())
     if local:
@@ -94,6 +95,12 @@ def main():
         default=False,
     )
     parser.add_argument(
+        "--no-syslog-logging",
+        help="Disable syslog logging.",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
         "--config",
         help="Path to configuration file.",
         required=True,
@@ -108,7 +115,11 @@ def main():
 
     # Initialize logging.
     setup_logging(
-        "chat-bridge", args.verbose, not args.no_local_logging, args.log_to_file
+        "chat-bridge",
+        args.verbose,
+        not args.no_local_logging,
+        args.log_to_file,
+        not args.no_syslog_logging,
     )
 
     logging.info("Starting Dolphin Chat Bridge.")
