@@ -1,24 +1,42 @@
-[tool.poetry]
+[project]
 name = "chat-bridge"
 version = "0.1.0"
 description = "Dolphin's Discord-IRC bridge bot"
-authors = ["OatmealDome <oatmeal@dolphin-emu.org>", "Pierre Bourdon <delroth@dolphin-emu.org>"]
-license = "MIT"
+authors = [
+    { name = "OatmealDome", email = "oatmeal@dolphin-emu.org" },
+    { name = "Pierre Bourdon", email = "delroth@dolphin-emu.org" },
+]
+requires-python = ">=3.10,<4"
 readme = "README.md"
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "pyyaml>=6.0,<7",
+    "pypeul",
+    "discord-py>=2.4.0,<3",
+]
 
-[tool.poetry.scripts]
+[project.scripts]
 chat-bridge = "chat_bridge.__main__:main"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-pyyaml = "^6.0"
-pypeul = { git = "https://github.com/dolphin-emu/pypeul", rev = "7a5310670bbc5405c9e6a2e4889c65231e137443" }
-discord-py = "^2.4.0"
+[dependency-groups]
+dev = [
+    "black>=26.1.0,<27",
+    "pytest>=7.2.0,<8",
+]
 
-[tool.poetry.group.dev.dependencies]
-black = "^26.1.0"
-pytest = "^7.2.0"
+[tool.uv]
+
+[tool.uv.sources]
+pypeul = { git = "https://github.com/dolphin-emu/pypeul", rev = "7a5310670bbc5405c9e6a2e4889c65231e137443" }
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
