@@ -12,6 +12,7 @@ from . import (
 )
 
 import argparse
+import datetime
 import functools
 import logging
 import logging.handlers
@@ -35,7 +36,7 @@ class EventLoggingHandler(logging.Handler):
         events.dispatcher.dispatch("logging", evt)
 
 
-def setup_logging(program, verbose=False, local=True):
+def setup_logging(program, verbose=False, local=True, file=False):
     """Sets up the default Python logger.
 
     Always log to syslog, optionaly log to stdout.
@@ -44,6 +45,7 @@ def setup_logging(program, verbose=False, local=True):
       program: Name of the program logging informations.
       verbose: If true, log more messages (DEBUG instead of INFO).
       local: If true, log to stdout as well as syslog.
+      file: If true, log to a file.
     """
     loggers = []
     if platform.system() == "Linux":
@@ -56,6 +58,16 @@ def setup_logging(program, verbose=False, local=True):
             logging.Formatter(program + ": [%(levelname)s] %(message)s")
         )
         logging.getLogger("").addHandler(logger)
+    if file:
+        now = datetime.datetime.now()
+        log_filename = f"{program}-{now.strftime('%Y%m%d-%H%M%S')}.log"
+        file_handler = logging.FileHandler(log_filename)
+        file_handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s " + program + ": [%(levelname)s] %(message)s"
+            )
+        )
+        logging.getLogger("").addHandler(file_handler)
     logging.getLogger("").setLevel(logging.DEBUG if verbose else logging.INFO)
 
 
@@ -86,10 +98,18 @@ def main():
         help="Path to configuration file.",
         required=True,
     )
+    parser.add_argument(
+        "--log-to-file",
+        help="Log to a file with a timestamped name.",
+        action="store_true",
+        default=False,
+    )
     args = parser.parse_args()
 
     # Initialize logging.
-    setup_logging("chat-bridge", args.verbose, not args.no_local_logging)
+    setup_logging(
+        "chat-bridge", args.verbose, not args.no_local_logging, args.log_to_file
+    )
 
     logging.info("Starting Dolphin Chat Bridge.")
 
