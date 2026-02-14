@@ -120,9 +120,7 @@ class Bot(IRC):
                         )
                     )
             else:
-                preamble_items.append(
-                    "unresolved reference"
-                )
+                preamble_items.append("unresolved reference")
 
         if len(preamble_items) > 0:
             preamble = "(" + ", ".join(preamble_items) + ") "
@@ -149,6 +147,12 @@ class Bot(IRC):
                 text = text.replace(
                     "<#%s>" % channel.id, "#%s" % self.sanitize_name(channel.name)
                 )
+
+            def emoji_replacement_callback(match):
+                return '[custom emoji "%s"]' % Tags.Bold(match.group(1))
+
+            # Replace all custom emoji with their names
+            text = re.sub(r"<:(\w+):\d+>", emoji_replacement_callback, text)
         else:
             text = ""
 
