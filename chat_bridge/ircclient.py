@@ -188,6 +188,20 @@ class Bot(IRC):
         for sticker in msg.stickers:
             self.message(self.cfg.channel, 'Sticker - "%s"' % sticker.name)
 
+    def relay_discord_message_delete(self, deleter, message, bot_user):
+        deleter_name = self.sanitize_name(deleter.name)
+        author_name = self.extract_sender_from_discord_message(message, bot_user)
+
+        if deleter.id == message.author.id:
+            text = "%s deleted their message" % Tags.Bold(deleter_name)
+        else:
+            text = "%s deleted a message by %s" % (
+                Tags.Bold(deleter_name),
+                Tags.Bold(author_name),
+            )
+
+        self.message(self.cfg.channel, text)
+
     def relay_discord_reaction_add(self, message, emoji, user, bot_user):
         if emoji.is_custom_emoji():
             emoji_text = "custom emoji %s" % emoji.name
@@ -228,6 +242,7 @@ class EventTarget(events.EventTarget):
         accepted_types = [
             events.DiscordMessage.TYPE,
             events.DiscordMessageEdit.TYPE,
+            events.DiscordMessageDelete.TYPE,
             events.DiscordReactionAdd.TYPE,
         ]
         return evt.type in accepted_types
@@ -239,6 +254,12 @@ class EventTarget(events.EventTarget):
                 self.bot.relay_discord_message(evt.msg, evt.bot_user)
             elif evt.type == events.DiscordMessageEdit.TYPE:
                 self.bot.relay_discord_message(evt.msg, evt.bot_user, edited=True)
+            elif evt.type == events.DiscordMessageDelete.TYPE:
+                self.bot.relay_discord_message_delete(
+                    evt.deleter,
+                    evt.message,
+                    evt.bot_user,
+                )
             elif evt.type == events.DiscordReactionAdd.TYPE:
                 self.bot.relay_discord_reaction_add(
                     evt.message, evt.emoji, evt.user, evt.bot_user
