@@ -89,6 +89,19 @@ def DiscordMessageEdit(msg: discord.Message, bot_user: discord.User):
     return {"msg": msg, "bot_user": bot_user}
 
 
+@event("discord_message_delete")
+def DiscordMessageDelete(
+    deleter: discord.User,
+    message: discord.Message,
+    bot_user: discord.User,
+):
+    return {
+        "deleter": deleter,
+        "message": message,
+        "bot_user": bot_user,
+    }
+
+
 @event("discord_reaction_add")
 def DiscordReactionAdd(
     message: discord.Message,

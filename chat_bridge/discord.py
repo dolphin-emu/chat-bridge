@@ -5,7 +5,16 @@ from .config import cfg
 
 from pypeul import Tags
 
-from discord import Client, Intents, TextChannel, MessageType, NotFound
+from discord import (
+    Client,
+    Intents,
+    TextChannel,
+    MessageType,
+    NotFound,
+    AuditLogAction,
+    Forbidden,
+    HTTPException,
+)
 
 import asyncio
 import logging
@@ -40,6 +49,64 @@ class Bot(Client):
             return
 
         evt = events.DiscordMessageEdit(payload.message, self.user)
+        events.dispatcher.dispatch("discord", evt)
+
+    async def on_raw_message_delete(self, payload):
+        if payload.channel_id != self.cfg.channel:
+            return
+
+        channel = self.get_channel(payload.channel_id)
+        if not channel:
+            logging.error(
+                "Channel %s not found in on_raw_message_delete", payload.channel_id
+            )
+            return
+
+        message = payload.cached_message
+        if not message:
+            try:
+                message = await channel.fetch_message(payload.message_id)
+            except (NotFound, HTTPException):
+                logging.error(
+                    "Message %s not found in on_raw_message_delete", payload.message_id
+                )
+                return
+
+        deleter = None
+
+        if payload.guild_id:
+            guild = self.get_guild(payload.guild_id)
+            if guild:
+                try:
+                    async for entry in guild.audit_logs(
+                        limit=5, action=AuditLogAction.message_delete
+                    ):
+                        if (
+                            message
+                            and entry.target.id == message.author.id
+                            and entry.extra.channel.id == payload.channel_id
+                        ):
+                            deleter = entry.user
+                            break
+                except (Forbidden, HTTPException):
+                    logging.error("Failed to fetch audit logs in on_raw_message_delete")
+                    return
+            else:
+                logging.error(
+                    "Guild %s not found in on_raw_message_delete", payload.guild_id
+                )
+                return
+        else:
+            logging.error("Guild not specified in on_raw_message_delete")
+
+        if deleter is None and message:
+            deleter = message.author
+
+        evt = events.DiscordMessageDelete(
+            deleter,
+            message,
+            self.user,
+        )
         events.dispatcher.dispatch("discord", evt)
 
     async def on_raw_reaction_add(self, payload):
