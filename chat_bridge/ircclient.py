@@ -10,12 +10,22 @@ from pypeul import IRC, Tags
 import logging
 import re
 import queue
+import time
+import token_bucket
 
 
 class Bot(IRC):
     def __init__(self, cfg):
         super(Bot, self).__init__()
         self.cfg = cfg
+        # We want to avoid accidentally tripping the IRCd's flood protection.
+        # Limit message sending to 5 messages burst, 1 message refill per second.
+        self.rate_limiter = token_bucket.Limiter(
+            rate=1.0,
+            capacity=5,
+            storage=token_bucket.MemoryStorage(),
+        )
+        self.msg_queue = queue.Queue()
 
     def start(self):
         self.connect(self.cfg.server, self.cfg.port, self.cfg.ssl)
@@ -26,6 +36,17 @@ class Bot(IRC):
         )
         self.set_reconnect(lambda n: 10 * n)
         self.run()
+
+    def process_queue(self):
+        while True:
+            while not self.rate_limiter.consume(b"global"):
+                time.sleep(1)
+            target, msg = self.msg_queue.get()
+            if self.connected:
+                self.message(target, msg)
+
+    def enqueue_message(self, target, text):
+        self.msg_queue.put((target, text))
 
     def on_ready(self):
         self.join(self.cfg.channel)
@@ -162,31 +183,31 @@ class Bot(IRC):
             preamble,
             text,
         )
-        self.message(self.cfg.channel, irc_message)
+        self.enqueue_message(self.cfg.channel, irc_message)
 
         if msg.poll:
-            self.message(
+            self.enqueue_message(
                 self.cfg.channel,
                 "Poll - user started a poll, unable to render or vote on IRC",
             )
 
         for embed in msg.embeds:
             if embed.type == "rich":
-                self.message(
+                self.enqueue_message(
                     self.cfg.channel,
                     "Embedded content - rich embed, unable to render on IRC",
                 )
             elif embed.type == "poll_result":
-                self.message(
+                self.enqueue_message(
                     self.cfg.channel,
                     "Embedded content - poll result, unable to render on IRC",
                 )
 
         for attachment in msg.attachments:
-            self.message(self.cfg.channel, "Attachment - %s" % attachment.url)
+            self.enqueue_message(self.cfg.channel, "Attachment - %s" % attachment.url)
 
         for sticker in msg.stickers:
-            self.message(self.cfg.channel, 'Sticker - "%s"' % sticker.name)
+            self.enqueue_message(self.cfg.channel, 'Sticker - "%s"' % sticker.name)
 
     def relay_discord_message_delete(self, deleter, message, bot_user):
         deleter_name = self.sanitize_name(deleter.name)
@@ -200,7 +221,7 @@ class Bot(IRC):
                 Tags.Bold(author_name),
             )
 
-        self.message(self.cfg.channel, text)
+        self.enqueue_message(self.cfg.channel, text)
 
     def relay_discord_reaction_add(self, message, emoji, user, bot_user):
         if emoji.is_custom_emoji():
@@ -213,7 +234,7 @@ class Bot(IRC):
             emoji_text,
             Tags.Bold(self.extract_sender_from_discord_message(message, bot_user)),
         )
-        self.message(self.cfg.channel, text)
+        self.enqueue_message(self.cfg.channel, text)
 
     def on_channel_message(self, who, channel, msg):
         if who.nick in self.cfg.ignore_users:
@@ -292,6 +313,7 @@ def start():
 
     bot = Bot(cfg.irc)
     utils.DaemonThread(target=bot.start).start()
+    utils.DaemonThread(target=bot.process_queue).start()
 
     evt_target = EventTarget(bot)
     events.dispatcher.register_target(evt_target)
