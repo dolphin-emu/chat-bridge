@@ -141,7 +141,10 @@ class Bot(IRC):
                         )
                     )
             else:
-                preamble_items.append("unresolved reference")
+                if msg.reference.type == MessageReferenceType.reply:
+                    preamble_items.append("in reply to an unknown message")
+                elif msg.reference.type == MessageReferenceType.forward:
+                    preamble_items.append("unknown forwarded message")
 
         if len(preamble_items) > 0:
             preamble = "(" + ", ".join(preamble_items) + ") "
