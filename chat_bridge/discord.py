@@ -16,6 +16,8 @@ from discord import (
     HTTPException,
 )
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import logging
 import queue
@@ -46,6 +48,13 @@ class Bot(Client):
 
     async def on_raw_message_edit(self, payload):
         if payload.message.channel.id != self.cfg.channel:
+            return
+
+        if not payload.message.edited_at:
+            return
+
+        now = datetime.now(timezone.utc)
+        if now - payload.message.edited_at > timedelta(seconds=10):
             return
 
         evt = events.DiscordMessageEdit(payload.message, self.user)
