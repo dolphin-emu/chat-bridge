@@ -21,6 +21,7 @@ dependencies = [
     "pyyaml>=6.0,<7",
     "pypeul",
     "discord-py>=2.4.0,<3",
+    "token-bucket>=0.3.0",
 ]
 
 [project.scripts]
