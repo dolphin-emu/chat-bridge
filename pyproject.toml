@@ -36,7 +36,7 @@ dev = [
 [tool.uv]
 
 [tool.uv.sources]
-pypeul = { git = "https://github.com/dolphin-emu/pypeul", rev = "7a5310670bbc5405c9e6a2e4889c65231e137443" }
+pypeul = { git = "https://github.com/dolphin-emu/pypeul", rev = "22fffeb91f0ebe82664039f0a6dfd0699322eebb" }
 
 [build-system]
 requires = ["hatchling"]
