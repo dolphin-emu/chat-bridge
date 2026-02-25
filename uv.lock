@@ -286,7 +286,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "discord-py", specifier = ">=2.4.0,<3" },
-    { name = "pypeul", git = "https://github.com/dolphin-emu/pypeul?rev=22fffeb91f0ebe82664039f0a6dfd0699322eebb" },
+    { name = "pypeul", git = "https://github.com/dolphin-emu/pypeul?rev=9ca8f8896e51008f6179ca950152abc50484077f" },
     { name = "pyyaml", specifier = ">=6.0,<7" },
     { name = "token-bucket", specifier = ">=0.3.0" },
 ]
@@ -782,7 +782,7 @@ wheels = [
 [[package]]
 name = "pypeul"
 version = "0.3.2"
-source = { git = "https://github.com/dolphin-emu/pypeul?rev=22fffeb91f0ebe82664039f0a6dfd0699322eebb#22fffeb91f0ebe82664039f0a6dfd0699322eebb" }
+source = { git = "https://github.com/dolphin-emu/pypeul?rev=9ca8f8896e51008f6179ca950152abc50484077f#9ca8f8896e51008f6179ca950152abc50484077f" }
 
 [[package]]
 name = "pytest"
