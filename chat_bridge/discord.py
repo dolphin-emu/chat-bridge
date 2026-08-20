@@ -157,30 +157,49 @@ class Bot(Client):
         chunklist = Tags.parse(msg)
 
         ret = ""
+        active_styles = []
+        style_map = {
+            "bold": "**",
+            "italics": "*",
+            "underline": "__",
+            "strikethrough": "~~",
+            "monospace": "`",
+        }
+
         for chunk in chunklist.children:
-            text = chunk.text
-            # Escape all backslashes first.
-            text = text.replace("\\", "\\\\")
-            # Escape the < character to prevent Discord from parsing it.
-            for char in ("<",):
-                text = text.replace(char, "\\" + char)
+            text = chunk.text.replace("\\", "\\\\").replace("<", "\\<")
 
             if "reset" in chunk.tags:
-                ret += text
-                continue
+                target_styles = set()
+            else:
+                target_styles = {tag for tag in chunk.tags if tag in style_map}
 
-            if "bold" in chunk.tags:
-                text = "**" + text + "**"
-            if "monospace" in chunk.tags:
-                text = "`" + text + "`"
-            if "italics" in chunk.tags:
-                text = "*" + text + "*"
-            if "strikethrough" in chunk.tags:
-                text = "~~" + text + "~~"
-            if "underline" in chunk.tags:
-                text = "__" + text + "__"
+            # Find common prefix of styles to keep
+            keep_count = 0
+            for style in active_styles:
+                if style not in target_styles:
+                    break
+                keep_count += 1
+
+            # Close unwanted styles
+            while len(active_styles) > keep_count:
+                ret += style_map[active_styles.pop()]
+
+            # Open new styles (sort new styles to ensure correct nesting order)
+            new_styles = sorted(
+                (s for s in target_styles if s not in active_styles),
+                key=lambda s: (s == "monospace", s),
+            )
+
+            for style in new_styles:
+                ret += style_map[style]
+                active_styles.append(style)
 
             ret += text
+
+        # Close any remaining active styles
+        while active_styles:
+            ret += style_map[active_styles.pop()]
 
         return ret
 
