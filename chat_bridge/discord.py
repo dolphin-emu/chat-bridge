@@ -266,7 +266,6 @@ def start():
     intents.guild_messages = True
     intents.message_content = True
     intents.reactions = True
-    intents.members = True
 
     bot = Bot(cfg.discord, intents)
     utils.DaemonThread(target=bot.run, kwargs={"token": cfg.discord.token}).start()
